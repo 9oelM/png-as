@@ -1,0 +1,1 @@
+export const UInt8ArrayID: i32 = idof<Uint8Array>();
