@@ -10,11 +10,9 @@ import { log } from './util/log';
   Interlace method:   1 byte
 */
 export class IHDR {
-  static TYPE: string = 'IHDR';
-  static BYTE_LENGTH: u8 = 13;
   private static COMPRESSION_METHOD: u8 = 0;
   private static FILTER_METHOD: u8 = 0;
-  private static COLOR_TYPES_TO_BIT_DEPTHS: Map<u8, StaticArray<u8>>;
+  private static COLOR_TYPES_TO_BIT_DEPTHS: Map<u8, StaticArray<u8>> = new Map<u8, StaticArray<u8>>();
 
   public bitDepths: StaticArray<u8>;
   constructor(
@@ -22,7 +20,7 @@ export class IHDR {
     public height: u32,
     public bitDepth: u8,
     public colorType: u8,
-    public compressionMethod: u8, 
+    public compressionMethod: u8,
     public filterMethod: u8,
     public interlaceMethod: u8,
   ) {
@@ -31,8 +29,8 @@ export class IHDR {
     IHDR.COLOR_TYPES_TO_BIT_DEPTHS.set(3, [1, 2, 4, 8])
     IHDR.COLOR_TYPES_TO_BIT_DEPTHS.set(4, [8, 16])
     IHDR.COLOR_TYPES_TO_BIT_DEPTHS.set(6, [8, 16])
-    
-    const bitDepths: StaticArray<u8> = IHDR.COLOR_TYPES_TO_BIT_DEPTHS.get(colorType);
+
+    const bitDepths = IHDR.COLOR_TYPES_TO_BIT_DEPTHS.get(colorType);
     if (bitDepths != null) {
       this.bitDepths = bitDepths;
     } else {
@@ -49,13 +47,18 @@ export class IHDR {
   }
 }
 
-export class IEND {
-  static TYPE: string = 'IEND';
+export namespace IHDR {
+  export const TYPE = <u32>0x52444849; // : string = 'IHDR';
+  export const BYTE_LENGTH = <u8>13;
 }
 
-export class IDAT {
-  static TYPE: string = 'IDAT';
-  static BYTE_LENGTH: u8 = 13;
+export namespace IDAT {
+  export const TYPE = <u32>0x54414449; // : string = 'IDAT';
+  export const BYTE_LENGTH = <u8>13;
+}
+
+export namespace IEND {
+  export const TYPE = <u32>0x444E4549; // : string = 'IEND';
 }
 
 /*
@@ -66,9 +69,6 @@ export class IDAT {
   For color types 2 and 6 (truecolor and truecolor with alpha), the PLTE chunk is optional. If present, it provides a suggested set of from 1 to 256 colors to which the truecolor image can be quantized if the viewer cannot display truecolor directly. If neither PLTE nor sPLT is present, such a viewer will need to select colors on its own, but it is often preferable for this to be done once by the encoder. (See Recommendations for Encoders: Suggested palettes.) 
 */
 export class PLTE {
-  static TYPE: string = 'PLTE';
-  static BYTE_LENGTH: u8 = 3;
-
   constructor(
     public R: u8,
     public G: u8,
@@ -81,10 +81,12 @@ export class PLTE {
   };
 }
 
-export class sRGB {
-  static TYPE: string = 'sRGB';
-  static BYTE_LENGTH: u8 = 1;
+export namespace PLTE {
+  export const TYPE = <u8>0x45544C50;
+  export const BYTE_LENGTH = <u8>3;
+}
 
+export class sRGB {
   constructor(
     public renderingIntent: u8,
   ) {
@@ -94,10 +96,12 @@ export class sRGB {
   }
 }
 
-export class gAMA {
-  static TYPE: string = 'gAMA';
-  static BYTE_LENGTH: u8 = 4;
+export namespace sRGB {
+  export const TYPE = <u32>0x42475273;
+  export const BYTE_LENGTH = <u8>1;
+}
 
+export class gAMA {
   constructor(
     public gamma: u32,
   ) {}
@@ -105,4 +109,9 @@ export class gAMA {
   getGamma(): u32 {
     return this.gamma * 100000;
   }
+}
+
+export namespace gAMA {
+  export const TYPE = <u32>0x414d4167;
+  export const BYTE_LENGTH = <u8>4;
 }
