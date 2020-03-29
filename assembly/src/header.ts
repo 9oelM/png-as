@@ -7,7 +7,7 @@ const HEADER_BITS = 8;
 export function validateHeader<T>(buffer: T, position: u32): u32 {
   if (ASC_FEATURE_SIMD) {
     let header = i16x8(137,  80,  78,  71,  13,  10,  26,  10);
-    // todo: Refactor this out into getSIMDfrom<T>(buffer: T)
+    // todo: Refactor this out into getSIMDfrom<T>(buffer: T, index: i32)
     let value = isDefined(unchecked(buffer[0]))
       ? i16x8(
           unchecked(buffer[0]),
