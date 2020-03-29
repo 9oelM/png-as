@@ -12,9 +12,8 @@ import { log } from './util/log';
 export class IHDR {
   private static COMPRESSION_METHOD: u8 = 0;
   private static FILTER_METHOD: u8 = 0;
-  private static COLOR_TYPES_TO_BIT_DEPTHS: Map<u8, StaticArray<u8>> = new Map<u8, StaticArray<u8>>();
+  public bitDepths: StaticArray<u8> = [];
 
-  public bitDepths: StaticArray<u8>;
   constructor(
     public width: u32,
     public height: u32,
@@ -24,13 +23,7 @@ export class IHDR {
     public filterMethod: u8,
     public interlaceMethod: u8,
   ) {
-    IHDR.COLOR_TYPES_TO_BIT_DEPTHS.set(0, [1, 2, 4, 8, 16])
-    IHDR.COLOR_TYPES_TO_BIT_DEPTHS.set(2, [8, 16])
-    IHDR.COLOR_TYPES_TO_BIT_DEPTHS.set(3, [1, 2, 4, 8])
-    IHDR.COLOR_TYPES_TO_BIT_DEPTHS.set(4, [8, 16])
-    IHDR.COLOR_TYPES_TO_BIT_DEPTHS.set(6, [8, 16])
-
-    const bitDepths = IHDR.COLOR_TYPES_TO_BIT_DEPTHS.get(colorType);
+    const bitDepths = IHDR.GET_COLOR_TYPES_TO_BITS_DEPTH(colorType);
     if (bitDepths != null) {
       this.bitDepths = bitDepths;
     } else {
@@ -50,6 +43,19 @@ export class IHDR {
 export namespace IHDR {
   export const TYPE = <u32>0x52444849; // : string = 'IHDR';
   export const BYTE_LENGTH = <u8>13;
+
+  // @ts-ignore
+  @inline
+  export function GET_COLOR_TYPES_TO_BITS_DEPTH(input: u8): StaticArray<u8> {
+    switch (input) {
+      case 0: return [1, 2, 4, 8, 16];
+      case 3: return [1, 2, 4, 8];
+      case 2:
+      case 4:
+      case 6: return [8, 16];
+      default: assert(false);
+    }
+  }
 }
 
 export namespace IDAT {
@@ -90,7 +96,8 @@ export class sRGB {
   constructor(
     public renderingIntent: u8,
   ) {
-    if (![0, 1, 2, 3].includes(renderingIntent)) {
+    // valid values are 0, 1, 2, and 3
+    if (renderingIntent & 0xFC) {
       log(renderingIntent.toString() + ' is not a valid rendering intent for sRGB');
     }
   }
