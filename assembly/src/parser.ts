@@ -1,6 +1,6 @@
 import { validateHeader } from './header';
 import { IEND, IHDR, IDAT, PLTE, gAMA, sRGB } from './chunkTypes';
-import { readNext32BitsNum as __readNext32BitsNum, readNext32BitsStr as __readNext32BitsStr } from './read';
+import { readNext32BitsNum as __readNext32BitsNum } from './read';
 import { log } from './util/log';
 
 // @ts-ignore
@@ -10,7 +10,7 @@ declare function addNums(num: u8, num1: u8): u8;
 @external('__png_as_external', 'zlibDeflate')
 declare function deflate(bytes: Uint8Array): Uint8Array;
 
-export class Parser {
+export class Parser<T> {
   position: u32 = 0;
   chunkTypes: Array<string> = [];
   IHDR: IHDR;
@@ -19,11 +19,23 @@ export class Parser {
   gAMA: gAMA;
 
   constructor(
-    private buffer: Uint8Array,
-  ){}
+    private buffer: T,
+  ){
+    // free compile time checks
+    if (!isArrayLike(buffer)) ERROR("buffer parameter must be ArrayLike");
+    // @ts-ignore: T is arraylike
+    if (!isInteger<valueof<T>>()) ERROR("buffer must be an array of u8 values.");
+    // @ts-ignore: T is arraylike
+    if (alignof<valueof<T>>() !== 0) ERROR("buffer must be an array of u8 values.");
+  }
 
   private readNext8bits(): u8 {
-    return this.buffer[++this.position];
+    // @ts-ignore: opt into unchecked if it's defined
+    return isDefined(unchecked(this.buffer[0]))
+      // @ts-ignore: unchecked array access is defined
+      ? unchecked(this.buffer[++this.position])
+      // @ts-ignore: type safe array access
+      : this.buffer[++this.position];
   }
 
   private readNext32BitsNum(): u32 {
@@ -35,26 +47,17 @@ export class Parser {
     );
   }
 
-  private readNext32BitsStr(): string {
-    return __readNext32BitsStr(
-      this.readNext8bits(),
-      this.readNext8bits(),
-      this.readNext8bits(),
-      this.readNext8bits(),
-    )
-  }
-
   main(): i8 {
-    let num: u8 = addNums(1, 2);
+    let num = addNums(1, 2);
     log(num);
-    this.position = validateHeader(this.buffer, this.position);
+    this.position = validateHeader<T>(this.buffer, this.position);
 
-    let chunkType = ''
+    let chunkType = <u32>0;
     let count = 0;
 
     while (count != 50) {
-      const chunkDataLen: u32 = this.readNext32BitsNum();
-      chunkType = this.readNext32BitsStr();
+      const chunkDataLen = this.readNext32BitsNum();
+      chunkType = this.readNext32BitsNum();
       if (chunkType == IHDR.TYPE) {
         this.IHDR = new IHDR(
           this.readNext32BitsNum(),
@@ -72,11 +75,11 @@ export class Parser {
           this.readNext8bits(),
           this.readNext8bits(),
         );
-      } 
-      else if (chunkType == gAMA.TYPE) { 
+      }
+      else if (chunkType == gAMA.TYPE) {
         this.gAMA = new gAMA(this.readNext32BitsNum());
-      } 
-      else if (chunkType == sRGB.TYPE) { 
+      }
+      else if (chunkType == sRGB.TYPE) {
         this.sRGB = new sRGB(this.readNext8bits());
       }
       /**
