@@ -66,7 +66,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var loader_1 = require("assemblyscript/lib/loader");
 var path = __importStar(require("path"));
 var util_1 = require("./util");
-var wasm_flate_1 = require("./wasm-flate");
+var myZlib = __importStar(require("zlib-c"));
 var wasmRefOutside;
 var wasmImportPromise = util_1.readFileAsync(path.join(__dirname, "..", "/out/main.wasm"));
 var img = util_1.readFileAsync(path.join(__dirname, "..", "/img/img1.png"));
@@ -84,9 +84,6 @@ wasmImportPromise.then(function (wasm) {
             addNums: function (num, num1) {
                 return num + num1;
             },
-            zlibDeflate: function (base_compressed) {
-                return wasm_flate_1.deflate_decode_raw(base_compressed);
-            }
         },
         env: {
             memory: new WebAssembly.Memory({
@@ -111,6 +108,10 @@ wasmImportPromise.then(function (wasm) {
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
+                        console.log(myZlib);
+                        // const buffer = Buffer.from('Hello World');
+                        // const deflated = myZlib.deflate(buffer);
+                        // console.log(myZlib.inflate(deflated).equals(buffer));
                         wasmRefOutside = wasm;
                         Parser = wasm.Parser, __release = wasm.__release, __retain = wasm.__retain, __allocArray = wasm.__allocArray;
                         return [4 /*yield*/, img];

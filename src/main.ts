@@ -2,7 +2,7 @@ import { readFileSync, readFile } from 'fs';
 import { instantiate, ASUtil } from 'assemblyscript/lib/loader';
 import * as path from 'path';
 import { readFileAsync } from './util';
-import { deflate_decode_raw } from './wasm-flate';
+import * as myZlib from 'zlib-c';
 
 let wasmRefOutside: ASUtil & {
   Parser: any;
@@ -34,9 +34,9 @@ wasmImportPromise.then((wasm) => {
       addNums(num: number, num1: number): number {
         return num + num1;
       },
-      zlibDeflate(base_compressed: Uint8Array): Uint8Array {
-        return deflate_decode_raw(base_compressed);
-      }
+      // zlibDeflate(base_compressed: Uint8Array): Uint8Array {
+      //   return deflate_decode_raw(base_compressed);
+      // }
     },
     env: {
       memory: new WebAssembly.Memory({
@@ -54,7 +54,12 @@ wasmImportPromise.then((wasm) => {
       // seed?: () => number,
       // trace?(msg: number, numArgs?: number, ...args: number[]): void
     },
-  }).then(async ({ exports: wasm }) => {
+  }).then(async ({ exports: wasm }: any) => {
+    console.log(myZlib)
+    // const buffer = Buffer.from('Hello World');
+    // const deflated = myZlib.deflate(buffer);
+    // console.log(myZlib.inflate(deflated).equals(buffer));
+
     wasmRefOutside = wasm;
     const { Parser, __release, __retain, __allocArray } = wasm;
     const pngImage: Buffer = await img;
