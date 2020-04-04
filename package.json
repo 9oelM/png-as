@@ -8,12 +8,13 @@
     "test:ci": "asp --summary"
   },
   "devDependencies": {
-    "@as-pect/cli": "^3.1.4",
-    "@types/node": "^12.12.31",
-    "assemblyscript": "^0.9.4-nightly.20200325",
-    "gulp": "^4",
-    "gulp-typescript": "^6.0.0-alpha.1",
-    "typescript": "^3.8.3"
+    "@as-pect/cli": "3.1.4",
+    "@types/node": "12.12.31",
+    "assemblyscript": "^0.9.4-nightly.20200402",
+    "gulp": "4.0.2",
+    "gulp-typescript": "6.0.0-alpha.1",
+    "typescript": "3.8.3",
+    "zlib-c": "file:./zlib-c"
   },
   "dependencies": {
     "wasm-flate": "^1.0.2-browser"

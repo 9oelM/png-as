@@ -62,12 +62,16 @@ var __importStar = (this && this.__importStar) || function (mod) {
     result["default"] = mod;
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var loader_1 = require("assemblyscript/lib/loader");
 var path = __importStar(require("path"));
 var util_1 = require("./util");
-var wasm_flate_1 = require("./wasm-flate");
+var zlib_c_1 = __importDefault(require("zlib-c"));
 var wasmRefOutside;
+var zlibCRefOutside;
 var wasmImportPromise = util_1.readFileAsync(path.join(__dirname, "..", "/out/main.wasm"));
 var img = util_1.readFileAsync(path.join(__dirname, "..", "/img/img1.png"));
 wasmImportPromise.then(function (wasm) {
@@ -77,15 +81,25 @@ wasmImportPromise.then(function (wasm) {
             logString: function (ptr) {
                 console.log(wasmRefOutside === null || wasmRefOutside === void 0 ? void 0 : wasmRefOutside.__getString(ptr));
             },
+            logArray: function (ptr) {
+                console.log(wasmRefOutside === null || wasmRefOutside === void 0 ? void 0 : wasmRefOutside.__getUint8Array(ptr));
+            },
             logNumber: console.log,
             exit: function (num) {
                 process.exit(num);
             },
-            addNums: function (num, num1) {
-                return num + num1;
+            zlibDeflate: function (buffer) {
+                var __retain = wasmRefOutside.__retain, __allocArray = wasmRefOutside.__allocArray;
+                var deflated = zlibCRefOutside.deflate(wasmRefOutside.__getUint8Array(buffer));
+                var ptr = __retain(__allocArray(wasmRefOutside.UInt8ArrayID, deflated));
+                return ptr;
             },
-            zlibDeflate: function (base_compressed) {
-                return wasm_flate_1.deflate_decode_raw(base_compressed);
+            test: function (a) {
+                var _a = wasmRefOutside, __release = _a.__release, __retain = _a.__retain, __allocArray = _a.__allocArray;
+                var mul = a.map(function (a) { return a * 2; });
+                var ptr = __retain(__allocArray(wasmRefOutside.UInt8ArrayID, mul));
+                console.log(ptr);
+                return ptr;
             }
         },
         env: {
@@ -110,11 +124,13 @@ wasmImportPromise.then(function (wasm) {
             var Parser, __release, __retain, __allocArray, pngImage, decimalValuesArray, ptr, parser, result;
             return __generator(this, function (_b) {
                 switch (_b.label) {
-                    case 0:
+                    case 0: return [4 /*yield*/, zlib_c_1.default.initialize()];
+                    case 1:
+                        zlibCRefOutside = _b.sent();
                         wasmRefOutside = wasm;
                         Parser = wasm.Parser, __release = wasm.__release, __retain = wasm.__retain, __allocArray = wasm.__allocArray;
                         return [4 /*yield*/, img];
-                    case 1:
+                    case 2:
                         pngImage = _b.sent();
                         decimalValuesArray = new Uint8Array(__spread(pngImage));
                         ptr = __retain(__allocArray(wasm.UInt8ArrayID, decimalValuesArray));

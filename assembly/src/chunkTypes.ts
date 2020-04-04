@@ -55,7 +55,22 @@ export class IEND {
 
 export class IDAT {
   static TYPE: string = 'IDAT';
-  static BYTE_LENGTH: u8 = 13;
+  static calcByteLEngth(IDATChunkLength: u32): u32 {
+    /**
+     * 1 bit = compression method
+     * 1 bit = check bit
+     * chunkLength - 6 bits = compressed data blocks
+     * 4 bit = check value
+     */
+    return IDATChunkLength - 6;
+  }
+  constructor(
+    public zlibCompressionMethod: u8,
+    public checkBit: u8,
+    public BYTE_LENGTH: u32, 
+  ) {}
+
+
 }
 
 /*
